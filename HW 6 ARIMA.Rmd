@@ -1,0 +1,78 @@
+---
+title: "ARIMA Homework 6"
+author: "Harry Selvakumar"
+date: "11/18/2026"
+output: html_document
+---
+  
+```{r}  
+library(fpp2)
+
+TOTALNSA <- read.csv("TOTALNSA.csv")
+
+TOTALNSA_ts <- ts(TOTALNSA$TOTALNSA,
+                  start = c(1976, 1),
+                  frequency = 12)
+
+
+TOTALNSA_ts <- window(TOTALNSA_ts, start = c(2008, 1))
+
+# Examine the updated dataset
+head(TOTALNSA_ts)
+plot(TOTALNSA_ts)
+# The dataset displays monthly vehicle sales beginning in January 2008.
+
+TOTALNSA_diff1 <- diff(TOTALNSA_ts, differences = 1)
+
+plot(TOTALNSA_diff1)
+tsdisplay(TOTALNSA_diff1)
+#The plots help determine whether trends remain after differencing.
+
+auto_fit <- auto.arima(TOTALNSA_ts,
+                       trace = TRUE,
+                       stepwise = FALSE)
+
+auto_fit
+attributes(auto_fit)
+#selects an ARIMA model for vehicle sales based on the data.
+plot(forecast(auto_fit, h = 15, level = c(99.5)))
+#The selected ARIMA model forecasts vehicle sales for the next 15 months. The shaded region represents the 99.5% prediction interval, showing uncertainty around the forecast.
+Acf(auto_fit$residuals)
+
+Box.test(residuals(auto_fit), lag = 20, type = "Ljung")
+
+plot.ts(residuals(auto_fit))
+
+hist(auto_fit$residuals)
+
+tsdiag(auto_fit)
+#Residual analysis evaluates whether the ARIMA model has captured the important patterns in vehicle sales.
+plot(TOTALNSA_ts)
+
+nsdiffs(TOTALNSA_ts)
+
+ndiffs(TOTALNSA_ts)
+
+ndiffs(diff(TOTALNSA_ts, 12))
+
+tsdisplay(diff(diff(TOTALNSA_ts, 12)))
+# Seasonal differencing compares vehicle sales with the same month of the previous year to help remove recurring seasonal patterns.
+fit3 <- auto.arima(TOTALNSA_ts,
+                   trace = TRUE,
+                   stepwise = FALSE)
+
+fit3
+#This model automatically identifies an appropriate ARIMA structure, including seasonal terms when supported by the data.
+Acf(fit3$residuals)
+
+Box.test(residuals(fit3), lag = 20, type = "Ljung")
+
+plot.ts(residuals(fit3))
+
+hist(fit3$residuals)
+
+dev.off()
+par(mar = c(4, 4, 2, 1))
+tsdiag(fit3)
+```
+
